@@ -1,28 +1,77 @@
 # acquire
 
- SELECT *
-    FROM properties_2017
-    LEFT OUTER JOIN airconditioningtype 
-    ON airconditioningtype.airconditioningtypeid = properties_2017.airconditioningtypeid
-    LEFT OUTER JOIN architecturalstyletype
-    ON architecturalstyletype.architecturalstyletypeid = properties_2017.architecturalstyletypeid
-    LEFT OUTER JOIN buildingclasstype 
-    ON buildingclasstype.buildingclasstypeid = properties_2017.buildingclasstypeid
-    LEFT OUTER JOIN heatingorsystemtype
-    ON heatingorsystemtype.heatingorsystemtypeid = properties_2017.heatingorsystemtypeid
-    LEFT OUTER JOIN predictions_2017
-    ON predictions_2017.id = properties_2017.id
-    INNER JOIN (
-    SELECT id, MAX(transactiondate) as last_trans_date 
-    FROM predictions_2017
-    GROUP BY id
-    ) predictions ON predictions.id = properties_2017.id AND predictions_2017.transactiondate = predictions.last_trans_date
-    LEFT OUTER JOIN propertylandusetype
-    ON propertylandusetype.propertylandusetypeid = properties_2017.propertylandusetypeid
-    LEFT OUTER JOIN storytype
-    ON storytype.storytypeid = properties_2017.storytypeid
-    LEFT OUTER JOIN typeconstructiontype
-    ON typeconstructiontype.typeconstructiontypeid = properties_2017.typeconstructiontypeid
-    JOIN unique_properties
-    ON unique_properties.parcelid = properties_2017.parcelid
-    WHERE latitude IS NOT NULL and longitude IS NOT NULL; 
+import warnings
+warnings.filterwarnings("ignore")
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import os
+
+from env import host, user, password
+
+# establishing get_connection function
+    
+
+# sets up a secure connection to the Codeup db using my login infor
+def get_db_url(db, user=user, host=host, password=password):
+    return f'mysql+pymysql://{user}:{password}@{host}/{db}'
+
+# assigns the zillow url to the variable name 'url' so it can be used in additional functions
+url = get_db_url('zillow')
+
+def get_connection(db, user=user, host=host, password=password):
+    '''
+    This function uses my env file to create a connection url to access
+    the Codeup database. '''
+    return f'mysql+pymysql://{user}:{password}@{host}/{db}'
+
+def new_zillow_data():
+    '''
+    This function reads data from the Codeup db into a df.
+    '''
+
+    sql_query = '''select prop.parcelid
+        , pred.logerror
+        , bathroomcnt
+        , bedroomcnt
+        , calculatedfinishedsquarefeet
+        , fips
+        , latitude
+        , longitude
+        , lotsizesquarefeet
+        , propertylandusetypeid
+        , regionidcity
+        , regionidcounty
+        , regionidzip
+        , yearbuilt
+        , structuretaxvaluedollarcnt
+        , taxvaluedollarcnt
+        , landtaxvaluedollarcnt
+        , taxamount
+    from properties_2017 prop
+    inner join predictions_2017 pred on prop.parcelid = pred.parcelid
+    where propertylandusetypeid = 261;'''
+    return pd.read_sql(sql_query, get_connection('zillow'))
+
+
+def get_zillow_data():
+    '''
+    This function reads in Zillow data from Codeup database, writes data to
+    a csv file if a local file does not exist, and returns a df.
+    '''
+    if os.path.isfile('zillow_df.csv'):
+        
+        # If csv file exists read in data from csv file.
+        df = pd.read_csv('zillow_df.csv', index_col=0)
+        
+    else:
+        
+        # Read fresh data from db into a DataFrame
+        df = new_zillow_data()
+     
+        # Cache data
+        df.to_csv('zillow_df.csv')
+        
+    return df
