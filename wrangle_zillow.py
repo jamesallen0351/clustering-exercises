@@ -11,10 +11,10 @@ import sklearn.preprocessing
 import warnings
 warnings.filterwarnings("ignore")
 
-# Statistical Tests
+# stats tests
 import scipy.stats as stats
 
-#Summarize Data 
+# data summary 
 
 def get_object_cols(df):
     '''
@@ -86,14 +86,6 @@ def clean_zillow(df):
 
     df.set_index('parcelid', inplace=True)
 
-    # cols_to_drop = ['fullbathcnt','heatingorsystemtypeid','finishedsquarefeet12', 
-    #             'propertycountylandusecode', 'propertylandusetypeid','propertyzoningdesc', 'censustractandblock',
-    #             'propertylandusedesc', 'buildingqualitytypeid' , 'unitcnt', 'heatingorsystemdesc', 
-    #             'lotsizesquarefeet','regionidcity', 'calculatedbathnbr', 'transactiondate', 'roomcnt', 'id', 'regionidcounty',
-    #             'regionidzip', 'assessmentyear']
-
-    # df.drop(columns=cols_to_drop, inplace = True)
-
     df.dropna(inplace = True)
 
     get_latitude(df)
@@ -102,24 +94,6 @@ def clean_zillow(df):
 
     return df
 
-#def get_county(df):
-    #Convert fips to int
-    # df.fips = df.fips.astype('int64')
-
-    # county = []
-
-    # for row in df['fips']:
-    #     if row == 6037:
-    #         county.append('Los Angeles')
-    #     elif row == 6059:
-    #         county.append('Orange')
-    #     elif row == 6111:
-    #         county.append('Ventura')
-        
-    # df['county'] = county
-
-    # df.drop(columns={'fips'}, inplace=True)
-    # return df
 
 def get_counties(df):
     '''
@@ -138,6 +112,7 @@ def get_counties(df):
     # drop regionidcounty and fips columns
     # df_dummies = df_dummies.drop(columns = ['regionidcounty'])
     return df_dummies
+
 
 def create_dummies(df, object_cols):
     '''
@@ -236,9 +211,9 @@ def split(df, target_var):
     X_train, X_validate, X_test, y_train, y_validate, y_test
     '''
     # split df into train_validate (80%) and test (20%)
-    train_validate, test = train_test_split(df, test_size=.20, random_state=13)
+    train_validate, test = train_test_split(df, test_size=.20, random_state=123)
     # split train_validate into train(70% of 80% = 56%) and validate (30% of 80% = 24%)
-    train, validate = train_test_split(train_validate, test_size=.3, random_state=13)
+    train, validate = train_test_split(train_validate, test_size=.3, random_state=123)
 
     # create X_train by dropping the target variable 
     X_train = train.drop(columns=[target_var])
